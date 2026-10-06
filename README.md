@@ -50,7 +50,7 @@ A Bluetooth-controlled RC car built with Arduino. This project allows you to con
 |-----------|-------------|
 | Buzzer (+) | 5 |
 | Buzzer (-) | GND |
-| LED (+) | 4 (via 220Ω resistor) |
+| LED (+) | 4 |
 | LED (-) | GND |
 
 ## 📱 How to Use

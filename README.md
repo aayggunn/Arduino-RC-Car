@@ -20,7 +20,7 @@ A Bluetooth-controlled RC car built with Arduino. This project allows you to con
 - **1x LED** (connected to Pin 4) + 220Ω Resistor
 - **1x Robot Car Chassis** (with wheels)
 - **Jumper Wires**
-- **Battery Pack** (e.g., 9V or 4xAA for the motor driver)
+- **Battery Pack** (e.g., 9V for Arduino and 18650x2 battery for L298N motor driver)
 
 ## 🔌 Wiring Diagram
 

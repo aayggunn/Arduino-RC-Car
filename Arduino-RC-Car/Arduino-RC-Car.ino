@@ -1,93 +1,96 @@
-/* Bluetooth Kontrollü Araç + Korna + Yanıp Sönen LED */
 
-const int sol_enable = 11;
-const int sag_ileri  = 10;
-const int sag_geri   = 9;
-const int sol_ileri  = 8;
-const int sol_geri   = 7;
-const int sag_enable = 6;
-const int buzzer     = 5;
-const int led        = 4;   // 🔴 LED pini
+const int left_enable  = 11;   // ENABLE A
+const int right_forward = 10;  // INPUT 1
+const int right_backward = 9;  // INPUT 2
+const int left_forward  = 8;   // INPUT 3
+const int left_backward = 7;   // INPUT 4
+const int right_enable = 6;    // ENABLE B
+const int buzzer       = 5;    // Horn
+const int led          = 4;    // Status LED
 
-char gelen_veri = 'S';
+char incoming_data = 'S';      // Default: stopped
 
-// LED için zamanlayıcı
-unsigned long oncekiZaman = 0;
-const unsigned long aralik = 500;
-bool ledDurum = false;
+// Timer for LED
+unsigned long previous_time = 0;
+const unsigned long interval = 500;
+bool led_state = false;
 
 void setup() {
-  pinMode(sag_ileri, OUTPUT);
-  pinMode(sag_geri, OUTPUT);
-  pinMode(sol_ileri, OUTPUT);
-  pinMode(sol_geri, OUTPUT);
-  pinMode(sag_enable, OUTPUT);
-  pinMode(sol_enable, OUTPUT);
+  pinMode(right_forward, OUTPUT);
+  pinMode(right_backward, OUTPUT);
+  pinMode(left_forward, OUTPUT);
+  pinMode(left_backward, OUTPUT);
+  pinMode(right_enable, OUTPUT);
+  pinMode(left_enable, OUTPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(led, OUTPUT);
   Serial.begin(9600);
-  dur();
+  stopCar();
 }
 
 void loop() {
-  // --- LED otomatik yanıp sönsün ---
-  if (millis() - oncekiZaman >= aralik) {
-    oncekiZaman = millis();
-    ledDurum = !ledDurum;
-    digitalWrite(led, ledDurum);
+  // --- Automatic LED blinking (non-blocking) ---
+  if (millis() - previous_time >= interval) {
+    previous_time = millis();
+    led_state = !led_state;
+    digitalWrite(led, led_state);
   }
 
-  // --- Bluetooth komutları ---
+  // --- Bluetooth commands ---
   if (Serial.available() > 0) {
-    gelen_veri = Serial.read();
-    Serial.println(gelen_veri);
+    incoming_data = Serial.read();
+    Serial.println(incoming_data);
 
-    switch (gelen_veri) {
-      case 'F': ileri(); break;
-      case 'B': geri();  break;
-      case 'L': sola();  break;
-      case 'R': saga();  break;
-      case 'S': dur();   break;
-      case 'Y': korna(); break;
+    switch (incoming_data) {
+      case 'F': moveForward();  break;
+      case 'B': moveBackward(); break;
+      case 'L': turnLeft();     break;
+      case 'R': turnRight();    break;
+      case 'S': stopCar();      break;
+      case 'Y': honk();         break;
     }
   }
 }
 
-/* ---- Korna (aktif buzzer) ---- */
-void korna() {
+/* ---- Horn (active buzzer) ---- */
+void honk() {
   digitalWrite(buzzer, HIGH);
   delay(300);
   digitalWrite(buzzer, LOW);
 }
 
-/* ---- Hareket Fonksiyonları ---- */
-void ileri() {
-  digitalWrite(sag_ileri, 1); digitalWrite(sag_geri, 0);
-  digitalWrite(sol_ileri, 1); digitalWrite(sol_geri, 0);
-  analogWrite(sag_enable, 255);
-  analogWrite(sol_enable, 255);
+/* ---- Movement Functions ---- */
+void moveForward() {
+  digitalWrite(right_forward, 1); digitalWrite(right_backward, 0);
+  digitalWrite(left_forward, 1);  digitalWrite(left_backward, 0);
+  analogWrite(right_enable, 255);
+  analogWrite(left_enable, 255);
 }
-void geri() {
-  digitalWrite(sag_ileri, 0); digitalWrite(sag_geri, 1);
-  digitalWrite(sol_ileri, 0); digitalWrite(sol_geri, 1);
-  analogWrite(sag_enable, 255);
-  analogWrite(sol_enable, 255);
+
+void moveBackward() {
+  digitalWrite(right_forward, 0); digitalWrite(right_backward, 1);
+  digitalWrite(left_forward, 0);  digitalWrite(left_backward, 1);
+  analogWrite(right_enable, 255);
+  analogWrite(left_enable, 255);
 }
-void sola() {
-  digitalWrite(sag_ileri, 1); digitalWrite(sag_geri, 0);
-  digitalWrite(sol_ileri, 0); digitalWrite(sol_geri, 1);
-  analogWrite(sag_enable, 200);
-  analogWrite(sol_enable, 200);
+
+void turnLeft() {
+  digitalWrite(right_forward, 1); digitalWrite(right_backward, 0);
+  digitalWrite(left_forward, 0);  digitalWrite(left_backward, 1);
+  analogWrite(right_enable, 200);
+  analogWrite(left_enable, 200);
 }
-void saga() {
-  digitalWrite(sag_ileri, 0); digitalWrite(sag_geri, 1);
-  digitalWrite(sol_ileri, 1); digitalWrite(sol_geri, 0);
-  analogWrite(sag_enable, 200);
-  analogWrite(sol_enable, 200);
+
+void turnRight() {
+  digitalWrite(right_forward, 0); digitalWrite(right_backward, 1);
+  digitalWrite(left_forward, 1);  digitalWrite(left_backward, 0);
+  analogWrite(right_enable, 200);
+  analogWrite(left_enable, 200);
 }
-void dur() {
-  digitalWrite(sag_ileri, 0); digitalWrite(sag_geri, 0);
-  digitalWrite(sol_ileri, 0); digitalWrite(sol_geri, 0);
-  analogWrite(sag_enable, 0);
-  analogWrite(sol_enable, 0);
+
+void stopCar() {
+  digitalWrite(right_forward, 0); digitalWrite(right_backward, 0);
+  digitalWrite(left_forward, 0);  digitalWrite(left_backward, 0);
+  analogWrite(right_enable, 0);
+  analogWrite(left_enable, 0);
 }
